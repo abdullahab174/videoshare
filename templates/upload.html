@@ -1,0 +1,174 @@
+{% extends "base.html" %}
+{% block title %}Creator Studio | VideoHub{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <header class="dashboard-header text-center mb-8">
+        <h1 class="text-3xl font-bold">🎬 Creator Studio</h1>
+        <p class="text-gray-600">Manage your uploads and share content with the world.</p>
+    </header>
+
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <div class="flash-box">
+                {% for message in messages %}
+                    <p>{{ message }}</p>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <!-- Upload Section -->
+    <section class="upload-box">
+        <h2 class="section-title">📤 Upload New Video</h2>
+        <form method="POST" action="{{ url_for('upload_video') }}" enctype="multipart/form-data" class="form-grid">
+            <div>
+                <label>Title</label>
+                <input type="text" name="title" required>
+            </div>
+            <div>
+                <label>Publisher</label>
+                <input type="text" name="publisher" required>
+            </div>
+            <div>
+                <label>Producer</label>
+                <input type="text" name="producer">
+            </div>
+            <div>
+                <label>Genre</label>
+                <input type="text" name="genre">
+            </div>
+            <div>
+                <label>Age Rating</label>
+                <select name="age_rating" required>
+                    <option value="">-- Select --</option>
+                    <option value="G">G</option>
+                    <option value="PG">PG</option>
+                    <option value="12">12</option>
+                    <option value="15">15</option>
+                    <option value="18">18</option>
+                </select>
+            </div>
+            <div>
+                <label>Video URL (optional)</label>
+                <input type="url" name="url" placeholder="https://example.com/video.mp4">
+            </div>
+            <div>
+                <label>Or Upload File</label>
+                <input type="file" name="file" accept="video/*">
+            </div>
+            <button type="submit" class="upload-btn">Upload Video</button>
+        </form>
+    </section>
+
+    <!-- Video List Section -->
+    <section class="videos-section mt-10">
+        <h2 class="section-title">🎥 Your Videos</h2>
+        {% if videos %}
+            <div class="video-grid">
+                {% for video in videos %}
+                    <div class="video-card">
+                        <video controls>
+                            <source src="{{ video.url }}" type="video/mp4">
+                            Your browser does not support the video tag.
+                        </video>
+                        <div class="video-meta">
+                            <h3>{{ video.title }}</h3>
+                            <p><span>🎭 Genre:</span> {{ video.genre or "N/A" }}</p>
+                            <p><span>🔞 Rating:</span> {{ video.age_rating or "N/A" }}</p>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="no-videos">You haven’t uploaded any videos yet.</p>
+        {% endif %}
+    </section>
+</div>
+
+<style>
+.dashboard-container {
+    padding: 20px;
+}
+.flash-box {
+    background: #e6ffed;
+    color: #065f46;
+    border: 1px solid #34d399;
+    padding: 10px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+.upload-box, .videos-section {
+    background: #fff;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    margin-bottom: 20px;
+}
+.section-title {
+    font-size: 1.4rem;
+    font-weight: bold;
+    margin-bottom: 16px;
+}
+.form-grid {
+    display: grid;
+    gap: 16px;
+}
+.form-grid label {
+    font-weight: 600;
+    display: block;
+    margin-bottom: 4px;
+}
+.form-grid input, .form-grid select {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+}
+.upload-btn {
+    margin-top: 12px;
+    padding: 10px;
+    background: #2563eb;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+}
+.upload-btn:hover {
+    background: #1e40af;
+}
+.video-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+}
+.video-card {
+    background: #fafafa;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+.video-card video {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+.video-meta {
+    padding: 10px;
+    font-size: 14px;
+}
+.video-meta h3 {
+    font-size: 16px;
+    margin-bottom: 6px;
+}
+.video-meta span {
+    font-weight: bold;
+    color: #374151;
+}
+.no-videos {
+    text-align: center;
+    color: #6b7280;
+}
+</style>
+{% endblock %}

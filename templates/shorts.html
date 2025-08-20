@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+{% block title %}Explore Shorts | tikshare{% endblock %}
+
+{% block content %}
+<div class="shorts-wrapper">
+    {% for video in videos %}
+        <div class="short-card">
+            <a href="{{ url_for('watch', video_id=video['id']) }}">
+                <video class="short-video" autoplay loop muted playsinline>
+                    <source src="{{ video['url'] }}" type="video/mp4">
+                    Your browser does not support the video tag.
+                </video>
+            </a>
+
+            <div class="short-info">
+                <div class="short-text">
+                    <h2 class="short-title">{{ video['title'] }}</h2>
+                    <p class="short-meta">
+                        <span class="publisher">{{ video['publisher'] }}</span> 
+                        <span class="divider">|</span>
+                        <span class="genre">Genre: {{ video['genre'] or "N/A" }}</span> 
+                        <span class="divider">|</span>
+                        <span class="rating">Rated: {{ video['age_rating'] or "N/A" }}</span>
+                    </p>
+                </div>
+
+                <div class="short-actions">
+                    <form method="POST" action="{{ url_for('like') }}" class="like-form" data-video-id="{{ video['id'] }}">
+                        <button type="button" class="like-btn" data-liked="false">❤️</button>
+                        <span class="like-count">{{ video['like_count'] }}</span>
+                    </form>
+                    <a href="{{ url_for('watch', video_id=video['id']) }}" class="comment-link">
+                        💬 {{ video['comment_count'] }}
+                    </a>
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+</div>
+
+<style>
+.shorts-wrapper {
+    display: grid;
+    gap: 20px;
+    justify-content: center;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    padding: 20px;
+}
+
+.short-card {
+    position: relative;
+    background: #111;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+    transition: transform 0.2s;
+}
+.short-card:hover {
+    transform: translateY(-4px);
+}
+
+.short-video {
+    width: 100%;
+    height: 400px;
+    object-fit: cover;
+    display: block;
+}
+
+.short-info {
+    padding: 12px;
+    background: rgba(0,0,0,0.7);
+    color: #fff;
+    font-size: 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.short-title {
+    font-size: 16px;
+    font-weight: bold;
+    margin-bottom: 4px;
+}
+
+.short-meta {
+    font-size: 12px;
+    color: #ddd;
+}
+.short-meta .divider {
+    margin: 0 6px;
+    opacity: 0.6;
+}
+
+.short-actions {
+    text-align: right;
+    font-size: 14px;
+}
+.like-btn {
+    background: none;
+    border: none;
+    font-size: 22px;
+    cursor: pointer;
+    color: #ff5a5a;
+}
+.like-count {
+    display: block;
+    font-size: 12px;
+}
+.comment-link {
+    display: inline-block;
+    margin-top: 6px;
+    color: #4dabf7;
+    text-decoration: none;
+    font-size: 14px;
+}
+.comment-link:hover {
+    text-decoration: underline;
+}
+</style>
+
+<script>
+document.querySelectorAll('.like-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+        const form = btn.closest('.like-form');
+        const videoId = form.dataset.videoId;
+        const liked = btn.dataset.liked === 'true';
+        const res = await fetch("{{ url_for('like') }}", {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: `video_id=${videoId}&liked=${!liked}`
+        });
+        const data = await res.json();
+        if (data.success) {
+            form.querySelector('.like-count').textContent = data.like_count;
+            btn.dataset.liked = (!liked).toString();
+            btn.textContent = (!liked) ? "💖" : "❤️";
+        }
+    });
+});
+</script>
+{% endblock %}

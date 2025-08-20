@@ -1,0 +1,188 @@
+{% extends "base.html" %}
+{% block title %}Watch | VideoHub{% endblock %}
+
+{% block content %}
+<div class="watch-container">
+    <!-- Video Player -->
+    <section class="video-card">
+        <h1 class="video-title">{{ video.title }}</h1>
+        <video class="player" controls>
+            <source src="{{ video.url }}" type="video/mp4">
+            Your browser does not support the video tag.
+        </video>
+        <div class="video-meta">
+            <p><span>Publisher:</span> {{ video.publisher }}</p>
+            <p><span>Genre:</span> {{ video.genre or "N/A" }}</p>
+            <p><span>Age Rating:</span> {{ video.age_rating or "N/A" }}</p>
+        </div>
+    </section>
+
+    <!-- Comments Section -->
+    <section class="comments-section">
+        <h2 class="section-title">Viewer Comments</h2>
+        <div id="comments" class="comment-list">
+            {% for comment in comments %}
+                <div class="comment">
+                    <div class="comment-header">
+                        <strong>{{ comment.username }}</strong>
+                        <span class="rating">{{ comment.rating }}</span>
+                    </div>
+                    <p class="comment-body">{{ comment.comment }}</p>
+                    <small class="comment-date">{{ comment.created_at }}</small>
+                </div>
+            {% else %}
+                <p class="no-comments">No comments yet. Be the first!</p>
+            {% endfor %}
+        </div>
+
+        {% if session.get('user') %}
+            <form onsubmit="postComment(event)" method="POST" class="comment-form">
+                <input type="hidden" name="video_id" value="{{ video.id }}">
+                <label>Your Comment:</label>
+                <textarea name="comment" required></textarea>
+                <label>Rating:</label>
+                <select name="rating" required>
+                    <option value="">-- Select --</option>
+                    <option value="1">1⭐</option>
+                    <option value="2">2⭐</option>
+                    <option value="3">3⭐</option>
+                    <option value="4">4⭐</option>
+                    <option value="5">5⭐</option>
+                </select>
+                <button type="submit" class="submit-btn">Post Comment</button>
+            </form>
+        {% else %}
+            <p class="login-hint"><a href="{{ url_for('login') }}">Login to comment</a></p>
+        {% endif %}
+    </section>
+</div>
+
+<style>
+.watch-container {
+    max-width: 800px;
+    margin: auto;
+    padding: 20px;
+}
+.video-card {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+    padding: 20px;
+    margin-bottom: 30px;
+}
+.video-title {
+    font-size: 1.8rem;
+    margin-bottom: 16px;
+}
+.player {
+    width: 100%;
+    border-radius: 8px;
+    margin-bottom: 16px;
+}
+.video-meta {
+    font-size: 14px;
+    color: #555;
+}
+.video-meta span {
+    font-weight: 600;
+}
+.comments-section {
+    background: #f9fafb;
+    padding: 20px;
+    border-radius: 12px;
+}
+.section-title {
+    font-size: 1.4rem;
+    margin-bottom: 12px;
+}
+.comment-list {
+    margin-bottom: 20px;
+}
+.comment {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    padding: 12px;
+    border-radius: 10px;
+    margin-bottom: 12px;
+}
+.comment-header {
+    display: flex;
+    justify-content: space-between;
+    font-size: 14px;
+    margin-bottom: 6px;
+}
+.comment-body {
+    margin: 0 0 6px;
+}
+.comment-date {
+    font-size: 12px;
+    color: #888;
+}
+.rating {
+    color: #f59e0b;
+    font-weight: bold;
+}
+.no-comments {
+    color: #666;
+    font-style: italic;
+}
+.comment-form {
+    display: grid;
+    gap: 12px;
+}
+.comment-form textarea, 
+.comment-form select {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+}
+.submit-btn {
+    background: #2563eb;
+    color: white;
+    border: none;
+    padding: 10px;
+    font-weight: bold;
+    border-radius: 8px;
+    cursor: pointer;
+}
+.submit-btn:hover {
+    background: #1e40af;
+}
+.login-hint {
+    text-align: center;
+    color: #444;
+}
+</style>
+
+<script>
+async function postComment(event) {
+    event.preventDefault();
+    const form = event.target;
+    const formData = new FormData(form);
+    const response = await fetch('/comment', {
+        method: 'POST',
+        body: formData
+    });
+
+    const data = await response.json();
+    if (data.success) {
+        const commentSection = document.getElementById("comments");
+        const commentHTML = `
+            <div class="comment">
+                <div class="comment-header">
+                    <strong>${data.username}</strong>
+                    <span class="rating">${data.rating}⭐</span>
+                </div>
+                <p class="comment-body">${data.comment}</p>
+                <small class="comment-date">${data.created_at}</small>
+            </div>
+        `;
+        commentSection.insertAdjacentHTML('afterbegin', commentHTML);
+        form.reset();
+    } else {
+        alert(data.message);
+    }
+}
+</script>
+{% endblock %}
